@@ -168,6 +168,8 @@ void FED3::Feed(int pulse, bool pixelsoff) {
       ReleaseMotor ();
       pelletTime = millis();
       
+      if (LoRaTransmit == false) BNC(40,5);
+      
       display.fillCircle(25, 99, 5, BLACK);
       display.refresh();
       retInterval = (millis() - pelletTime);
@@ -185,6 +187,9 @@ void FED3::Feed(int pulse, bool pixelsoff) {
           leftInterval = (millis()-leftPokeTime);
           UpdateDisplay();
           Event = "LeftWithPellet";
+          if (LoRaTransmit)
+            fed3wan.run(pointerToFED3); //Tx data via uart
+
           logdata();
           }
 
@@ -196,7 +201,10 @@ void FED3::Feed(int pulse, bool pixelsoff) {
           rightInterval = (millis()-rightPokeTime);
           UpdateDisplay();
           Event = "RightWithPellet";
-          logdata();       
+          if (LoRaTransmit)
+            fed3wan.run(pointerToFED3); //Tx data via uart
+
+          logdata();
           }
         } 
       
@@ -212,6 +220,9 @@ void FED3::Feed(int pulse, bool pixelsoff) {
           leftInterval = (millis()-leftPokeTime);
           UpdateDisplay();
           Event = "LeftWithPellet";
+          if (LoRaTransmit)
+            fed3wan.run(pointerToFED3); //Tx data via uart
+
           logdata();
           }
 
@@ -223,7 +234,10 @@ void FED3::Feed(int pulse, bool pixelsoff) {
           rightInterval = (millis()-rightPokeTime);
           UpdateDisplay();
           Event = "RightWithPellet";
-          logdata();       
+          if (LoRaTransmit)
+            fed3wan.run(pointerToFED3); //Tx data via uart
+
+          logdata();
           }
       }
 
@@ -349,6 +363,9 @@ bool FED3::RotateDisk(int steps) {
        leftInterval = (millis() - leftPokeTime);
        UpdateDisplay();
        Event = "LeftDuringDispense";
+       if (LoRaTransmit)
+         fed3wan.run(pointerToFED3); //Tx data via uart
+
        logdata();
      }
 
@@ -360,6 +377,9 @@ bool FED3::RotateDisk(int steps) {
        rightInterval = (millis() - rightPokeTime);
        UpdateDisplay();
        Event = "RightDuringDispense";
+       if (LoRaTransmit)
+         fed3wan.run(pointerToFED3); //Tx data via uart
+
        logdata();
      }
     
@@ -405,6 +425,16 @@ void FED3::Timeout(int seconds, bool reset=false, bool whitenoise=false) {
   int timeoutStart = millis();
 
   while ((millis() - timeoutStart) < (seconds*1000)) {
+    
+    delay (1);
+    int displayUpdated = millis();
+    if (millis() - displayUpdated < 1000) {
+      display.fillRect (5, 20, 200, 25, WHITE); //erase the data on screen without clearing the entire screen by pasting a white box over it
+      display.setCursor(6, 36);
+      display.print("Timeout: ");
+      display.print(round(seconds - ((millis() - timeoutStart)) / 1000));
+      display.refresh();
+    
     if (whitenoise) {
       int freq = random(50,250);
       tone(BUZZER, freq, 10);
@@ -429,6 +459,10 @@ void FED3::Timeout(int seconds, bool reset=false, bool whitenoise=false) {
       leftInterval = (millis() - leftPokeTime);
       UpdateDisplay();
       Event = "LeftinTimeOut";
+      if (LoRaTransmit) {
+        fed3wan.run(pointerToFED3);
+      }
+         //Tx data via uart
       logdata();
     }
 
@@ -450,6 +484,9 @@ void FED3::Timeout(int seconds, bool reset=false, bool whitenoise=false) {
       rightInterval = (millis() - rightPokeTime);
       UpdateDisplay();
       Event = "RightinTimeout";
+      if (LoRaTransmit) {
+        fed3wan.run(pointerToFED3);
+      }
       logdata();
     }
   }
@@ -1117,9 +1154,9 @@ void FED3::logdata() {
     logfile.print(numMotorTurns+1); // Print the number of attempts to dispense a pellet
     logfile.print(",");
   }
-  /////////////////////////////////////////////////////////////
-  // Log FR ratio (or pellets to switch block in bandit task)
-  /////////////////////////////////////////////////////////////
+  /////////////////////////////////
+  // Log FR ratio
+  /////////////////////////////////
   if (sessiontype == "Bandit") {
     logfile.print(pelletsToSwitch);
     logfile.print(",");
@@ -1132,7 +1169,6 @@ void FED3::logdata() {
     logfile.print(FR);
     logfile.print(",");
   }
-
   /////////////////////////////////
   // Log event type (pellet, right, left)
   /////////////////////////////////
@@ -1154,6 +1190,7 @@ void FED3::logdata() {
   }
 
   logfile.print(",");
+
 
   /////////////////////////////////
   // Log data (leftCount, RightCount, Pellets)
@@ -1231,16 +1268,16 @@ void FED3::logdata() {
 // If any errors are detected with the SD card upon boot this function
 // will blink both LEDs on the Feather M0, turn the NeoPixel into red wipe pattern,
 // and display "Check SD Card" on the screen
-void FED3::error(uint8_t errno) {
+void FED3::error(uint8_t fed3_errno) {
   if (suppressSDerrors == false){
     DisplaySDError();
     while (1) {
       uint8_t i;
-      for (i = 0; i < errno; i++) {
+      for (i = 0; i < fed3_errno; i++) {
         Blink(GREEN_LED, 25, 2);
         colorWipe(strip.Color(5, 0, 0), 25); // RED
       }
-      for (i = errno; i < 10; i++) {
+      for (i = fed3_errno; i < 10; i++) {
         colorWipe(strip.Color(0, 0, 0), 25); // clear
       }
     }

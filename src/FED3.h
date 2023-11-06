@@ -22,7 +22,7 @@ This device includes hardware and code from:
   Copyright (c) 2019, 2020 Lex Kravitz
 */
 
-#define VER "1.17.0"
+#define VER "1.18.0"
 
 #ifndef FED3_H
 #define FED3_H
@@ -45,6 +45,7 @@ This device includes hardware and code from:
 #include <Fonts/Org_01.h>
 #include <Adafruit_NeoPixel.h>
 #include <Adafruit_AHTX0.h>
+#include <stdint.h>
 
 // Pin definitions
 #define NEOPIXEL        A1
@@ -92,7 +93,7 @@ class FED3 {
         void writeHeader();
         void writeConfigFile();
         void writeFEDmode();
-        void error(uint8_t errno);
+        void error(uint8_t fed3_errno);
         void getFilename(char *filename);
         bool suppressSDerrors = false;  //set to true to suppress SD card errors at startup 
 
@@ -164,7 +165,7 @@ class FED3 {
         void leftTrigger();
         void rightTrigger();
         void goToSleep();
-        void Timeout(int timeout, bool reset, bool whitenoise);
+        void Timeout(int timeout, bool reset = false, bool whitenoise = false);
         int minPokeTime = 0;
         void randomizeActivePoke(int max);
         int consecutive = 0;
@@ -205,14 +206,13 @@ class FED3 {
         unsigned long currentSecond;
         unsigned long displayupdate;
         String Event = "None";   //What kind of event just happened?
-    
-
-        // task variables
+        
+        // Bandit variables
         int prob_left = 0;
         int prob_right = 0;
         int pelletsToSwitch = 0;
         bool allowBlockRepeat = false;
-
+        
         // timing variables
         int retInterval = 0;
         int leftInterval = 0;
