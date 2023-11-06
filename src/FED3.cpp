@@ -428,7 +428,14 @@ void FED3::Timeout(int seconds, bool reset, bool whitenoise) {
     
     delay (1);
     int displayUpdated = millis();
-    if (millis() - displayUpdated < 1000) {
+    
+    if (whitenoise) {
+      int freq = random(50,250);
+      tone(BUZZER, freq, 10);
+      delay (10);
+    }
+    
+    else (millis() - displayUpdated < 1000) {
       display.fillRect (5, 20, 200, 25, WHITE); //erase the data on screen without clearing the entire screen by pasting a white box over it
       display.setCursor(6, 36);
       display.print("Timeout: ");
@@ -436,11 +443,7 @@ void FED3::Timeout(int seconds, bool reset, bool whitenoise) {
       display.refresh();
     }
     
-    if (whitenoise) {
-      int freq = random(50,250);
-      tone(BUZZER, freq, 10);
-      delay (10);
-    }
+
 
     if (digitalRead(LEFT_POKE) == LOW) {             //If left poke is triggered
       if (reset) {
