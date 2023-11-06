@@ -421,7 +421,7 @@ bool FED3::dispenseTimer_ms(int ms) {
 }
 
 //Timeout function
-void FED3::Timeout(int seconds, bool reset=false, bool whitenoise=false) {
+void FED3::Timeout(int seconds, bool reset, bool whitenoise) {
   int timeoutStart = millis();
 
   while ((millis() - timeoutStart) < (seconds*1000)) {
@@ -434,6 +434,7 @@ void FED3::Timeout(int seconds, bool reset=false, bool whitenoise=false) {
       display.print("Timeout: ");
       display.print(round(seconds - ((millis() - timeoutStart)) / 1000));
       display.refresh();
+    }
     
     if (whitenoise) {
       int freq = random(50,250);
@@ -479,21 +480,21 @@ void FED3::Timeout(int seconds, bool reset=false, bool whitenoise=false) {
         if (whitenoise) {
           int freq = random(50,250);
           tone(BUZZER, freq, 10);
+        }   
+        rightInterval = (millis() - rightPokeTime);
+        UpdateDisplay();
+        Event = "RightinTimeout";
+        if (LoRaTransmit) {
+          fed3wan.run(pointerToFED3);
         }
-      }   
-      rightInterval = (millis() - rightPokeTime);
-      UpdateDisplay();
-      Event = "RightinTimeout";
-      if (LoRaTransmit) {
-        fed3wan.run(pointerToFED3);
+        logdata();
       }
-      logdata();
     }
-  }
   display.fillRect (5, 20, 100, 25, WHITE);  //erase the data on screen without clearing the entire screen by pasting a white box over it
   UpdateDisplay();
   Left = false;
   Right = false;
+  }
 }
 
 /**************************************************************************************************************************************************
