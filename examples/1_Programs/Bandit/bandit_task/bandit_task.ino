@@ -28,7 +28,7 @@ String last_poke = "";
 
 void setup() {
   fed3.countAllPokes = false;
-  fed3.LoRaTransmit = true;
+  fed3.LoRaTransmit = false;
   fed3.pelletsToSwitch = 30;                          // Number of pellets required to finish the block and change reward probabilities
   fed3.prob_left = 80;                                // Initial reward probability of left poke
   fed3.prob_right = 20;                               // Initial reward probability of right poke
@@ -72,15 +72,20 @@ void loop() {
   // resets if the mouse pokes during timeout, and also white noise is present
   // through the whole timeout
   if (fed3.Left) {
+    fed3.BNC(50,1);    
     fed3.BlockPelletCount = pellet_counter;
     fed3.logLeftPoke();                                   //Log left poke
-    delay(1000);
+    delay(2000);    
     if (random(100) < fed3.prob_left) {                        //Select a random number between 0-100 and ask if it is between 0-80 (80% of the time).  If so:
+      fed3.BNC(50,3);
       fed3.ConditionedStimulus();                         //Deliver conditioned stimulus (tone and lights)
+      delay(2000);
       fed3.Feed();                                        //Deliver pellet
+      fed3.BNC(50,6);
       pellet_counter ++;                                  //Increase pellet counter by one
     }
     else {                                                //If random number is between 81-100 (20% of the time)
+      fed3.BNC(50,4);
       fed3.Tone(300, 600);                               //Play the error tone
       fed3.Timeout(timeoutIncorrect, true, true);
     } 
@@ -91,15 +96,20 @@ void loop() {
   // Notice that in this example the behavior after a right poke is exactly the
   // same as the the behvaior after a left poke.
   if (fed3.Right) {
+    fed3.BNC(50,2);
     fed3.BlockPelletCount = pellet_counter;
     fed3.logRightPoke();                                  //Log Right poke
-    delay(1000);
+    delay(2000);
     if (random(100) < fed3.prob_right) {                       //Select a random number between 0-100 and ask if it is between 80-100 (20% of the time).  If so:
+      fed3.BNC(50,3);
       fed3.ConditionedStimulus();                         //Deliver conditioned stimulus (tone and lights)
+      delay(2000);
       fed3.Feed();                                        //Deliver pellet
+      fed3.BNC(50,6);
       pellet_counter ++;                                  //Increase pellet counter by one
     }
     else {                                                //If random number is between 0-80 (80% of the time)
+      fed3.BNC(50,4);
       fed3.Tone(300, 600);                               //Play the error tone
       fed3.Timeout(timeoutIncorrect, true, true);
     }
